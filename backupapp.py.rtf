@@ -1,0 +1,133 @@
+{\rtf1\ansi\ansicpg1252\cocoartf2822
+\cocoatextscaling0\cocoaplatform0{\fonttbl\f0\fswiss\fcharset0 Helvetica;}
+{\colortbl;\red255\green255\blue255;}
+{\*\expandedcolortbl;;}
+\margl1440\margr1440\vieww11520\viewh8400\viewkind0
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+
+\f0\fs24 \cf0 import streamlit as st\
+import sqlite3\
+import pandas as pd\
+import os\
+from dotenv import load_dotenv\
+import google.generativeai as genai\
+\
+# === \uc0\u55357 \u56592  Load environment variables ===\
+load_dotenv()\
+\
+# === \uc0\u55358 \u56598  Configure Gemini API ===\
+genai.configure(api_key=os.getenv("GEMINI_API_KEY"))\
+model = genai.GenerativeModel("models/gemini-2.5-pro")\
+\
+# === \uc0\u55357 \u56770 \u65039  Database path ===\
+DB_PATH = "app.db"\
+\
+# === \uc0\u55357 \u56536  Schema for Gemini context ===\
+schema_description = """\
+We have the following tables:\
+\
+1. orders(order_id, customer_name, region, product, quantity, price)\
+2. customers(customer_id, customer_name, city, state, email)\
+3. claims(CREATE TABLE "claim" ( "Facility_Name" TEXT, "Facility_ID" INTEGER, "State" TEXT, "Period" TEXT, "Claim_Type" TEXT,\
+"AvgSpndgPerEP_Hospital" INTEGER, "AvgSpndgPerEP_State" INTEGER, "AvgSpndgPerEP_National" INTEGER,"PercentofSpndg_Hospital" TEXT,\
+"PercentofSpndg_State" TEXT, "PercentofSpndg_National" TEXT, "Start_Date" TEXT, "End_Date" TEXT )\
+Note:\
+Table: claim\
+Columns:\
+- Facility_Name: Name of the healthcare facility\
+- Facility_ID: Unique identifier for the facility\
+- State: U.S. state where the facility is located\
+- Period: Time period (e.g., FY 2022)\
+- Claim_Type: Type of Medicare claim (e.g., Inpatient, Outpatient)\
+- AvgSpndgPerEP_Hospital: Average Medicare spending per episode at the facility\
+- AvgSpndgPerEP_State: Statewide average spending per episode\
+- AvgSpndgPerEP_National: National average spending per episode\
+- PercentofSpndg_Hospital: Hospital spending as a percent\
+- PercentofSpndg_State: State spending as a percent\
+- PercentofSpndg_National: National spending as a percent\
+- Start_Date: Start date of the data period\
+- End_Date: End date of the data period\
+\
+and for orders table `price` is the total cost for the order (already includes quantity)\
+"""\
+\
+# === \uc0\u55357 \u56764 \u65039  Streamlit UI setup ===\
+st.set_page_config(page_title="\uc0\u55358 \u56800  Gemini NL \u8594  SQL", layout="centered")\
+st.title("\uc0\u55358 \u56800  Natural Language to SQL using Gemini")\
+st.markdown("Ask a question to query your **Orders** and **Customers** data:")\
+table_choice = st.selectbox("\uc0\u55357 \u56523  Select a table to query", ["All", "orders", "customers", "claim"])\
+\
+# === \uc0\u55358 \u56800  Get user question ===\
+user_question = st.text_input("\uc0\u55357 \u56589  Enter your question:")\
+\
+# === \uc0\u55358 \u56800  Generate SQL query from user question ===\
+def generate_sql_from_question(question):\
+    prompt = f"""\
+You are a helpful assistant that writes SQL queries for a SQLite database.\
+\
+\{schema_description\}\
+\
+Translate the following natural language question into an SQLite SQL query:\
+\
+Question: "\{question\}"\
+SQL Query:\
+    """\
+\
+    response = model.generate_content(prompt)\
+    raw_sql = response.text.strip()\
+\
+    # Remove markdown formatting like ```sql\
+    if raw_sql.startswith("```"):\
+        raw_sql = raw_sql.strip("`")\
+        lines = raw_sql.splitlines()\
+        raw_sql = "\\n".join(line for line in lines if not line.strip().lower().startswith("sql"))\
+\
+    return raw_sql.strip()\
+\
+# === \uc0\u55358 \u56800  Generate natural language answer from SQL result ===\
+def generate_answer_from_result(question, df):\
+    # Convert the result DataFrame to a plain text table (or string)\
+    result_str = df.to_string(index=False)\
+\
+    prompt = f"""\
+You are a data assistant. Based on the user's question and the SQL result, provide a short natural language answer.\
+\
+Question: "\{question\}"\
+\
+SQL Result:\
+\{result_str\}\
+\
+Answer:\
+"""\
+\
+    response = model.generate_content(prompt)\
+    return response.text.strip()\
+\
+# === \uc0\u9989  Process input and display output ===\
+if user_question:\
+    try:\
+        # Step 1: Generate SQL\
+        sql = generate_sql_from_question(user_question)\
+        st.subheader("\uc0\u55357 \u56615  Generated SQL Query")\
+        st.code(sql, language="sql")\
+\
+        # Step 2: Run the SQL query\
+        conn = sqlite3.connect(DB_PATH)\
+        df = pd.read_sql_query(sql, conn)\
+        conn.close()\
+\
+        st.success("\uc0\u9989  Query executed successfully!")\
+        st.subheader("\uc0\u55357 \u56522  SQL Query Result")\
+        st.dataframe(df)\
+\
+        # Step 3: Generate answer from result\
+        if not df.empty:\
+            answer = generate_answer_from_result(user_question, df)\
+            st.subheader("\uc0\u55357 \u56803 \u65039  Answer in Natural Language")\
+            st.write(answer)\
+        else:\
+            st.warning("\uc0\u9888 \u65039  No data returned by the query.")\
+\
+    except Exception as e:\
+        st.error(f"\uc0\u10060  Error: \{e\}")\
+}

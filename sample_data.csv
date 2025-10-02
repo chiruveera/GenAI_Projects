@@ -1,0 +1,6 @@
+order_id,customer_name,region,product,quantity,price
+1001,John Doe,East,Keyboard,2,50
+1002,Jane Smith,West,Mouse,1,25
+1003,Jim Brown,East,Laptop,1,1000
+1004,Alice Johnson,South,Monitor,2,300
+1005,Bob Martin,North,Keyboard,1,50
