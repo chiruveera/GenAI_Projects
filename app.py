@@ -14,18 +14,18 @@ genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
 model = genai.GenerativeModel("models/gemini-2.5-pro")
 
 # === Streamlit UI setup ===
-st.set_page_config(page_title="🧠 Gemini NL → SQL", layout="centered")
-st.title("🧠 Natural Language to SQL using Gemini")
-st.markdown("Ask a question to query your **Orders**, **Customers**, **Claims** data or from your own file!")
+st.set_page_config(page_title="Quick Query", layout="centered")
+st.title("Natural Language to SQL Using Agent")
+st.markdown("Ask a question to query your data or from your own file!")
 
 # === File Upload ===
-uploaded_file = st.file_uploader("📂 Upload a CSV or Excel file to query", type=["csv", "xlsx"])
+uploaded_file = st.file_uploader("Upload a CSV or Excel file to query", type=["csv", "xlsx"])
 uploaded_df = None
 conn = None
 temp_table_name = "uploaded_data"
 
 # === Table selection ===
-table_choice = st.selectbox("📋 Select a table to query", ["All", "orders", "customers", "claim", "Uploaded File" if uploaded_file else None])
+table_choice = st.selectbox(" Select a table to query", ["All", "orders", "customers", "claim", "Uploaded File" if uploaded_file else None])
 
 # === Schema for Gemini context ===
 # You can extend this to dynamically include uploaded schema later
@@ -63,7 +63,7 @@ if uploaded_file:
         st.error(f" Error loading file: {e}")
 
 # === Get user question ===
-user_question = st.text_input("🔍 Enter your question:")
+user_question = st.text_input(" Enter your question:")
 
 # === Generate SQL query from user question ===
 def generate_sql_from_question(question):
