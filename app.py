@@ -25,10 +25,10 @@ conn = None
 temp_table_name = "uploaded_data"
 
 # === Table selection ===
-table_choice = st.selectbox(" Select a table to query", ["All", "orders", "customers", "claim", "Uploaded File" if uploaded_file else None])
+table_choice = st.selectbox(" Select a table to query", ["All", "orders", "customers", "claim", 
+                                                         "Uploaded File" if uploaded_file else None])
 
 # === Schema for Gemini context ===
-# You can extend this to dynamically include uploaded schema later
 schema_description = """
 We have the following tables:
 
