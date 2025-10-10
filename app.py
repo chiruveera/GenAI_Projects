@@ -67,27 +67,45 @@ user_question = st.text_input(" Enter your question:")
 
 # === Generate SQL query from user question ===
 def generate_sql_from_question(question):
+<<<<<<< HEAD
     selected_schema = ""
 
     if table_choice == "Uploaded File" and uploaded_df is not None:
         selected_schema = f"{temp_table_name}({', '.join(uploaded_df.columns)})"
     else:
         selected_schema = schema_description  # fallback
+=======
+  selected_schema = ""
+  if table_choice == "Uploaded File" and uploaded_df is not None:
+    selected_schema = f"4. {temp_table_name}({', '.join(uploaded_df.columns)})"
+  else:
+    selected_schema = schema_description  # fallback to full schema
+>>>>>>> 70722599d7705456b024b8ca62f98cafcf0a0c2c
 
     prompt = f"""
 You are a helpful assistant that writes SQL queries for a SQLite database.
 
+<<<<<<< HEAD
 Note: Only generate SQL for the selected table. Do not use other tables even if they seem relevant.
 
 We have the following table:
 {selected_schema}
+=======
+Note:- "Only generate SQL for the selected table. Do not use other tables even if they seem relevant."
+
+{schema_description}
+>>>>>>> 70722599d7705456b024b8ca62f98cafcf0a0c2c
 
 Translate the following natural language question into an SQLite SQL query:
 
 Question: "{question}"
 SQL Query:
     """
+<<<<<<< HEAD
     response = model.generate_content(prompt, generation_config={"temperature": 0.2})
+=======
+    response = model.generate_content(prompt,generation_config={"temperature": 0.2})
+>>>>>>> 70722599d7705456b024b8ca62f98cafcf0a0c2c
     raw_sql = response.text.strip()
 
     # Clean up formatting
@@ -98,7 +116,10 @@ SQL Query:
 
     return raw_sql.strip()
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> 70722599d7705456b024b8ca62f98cafcf0a0c2c
 # === Generate natural language answer from SQL result ===
 def generate_answer_from_result(question, df):
     result_str = df.to_string(index=False)
