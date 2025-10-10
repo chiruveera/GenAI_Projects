@@ -68,11 +68,10 @@ user_question = st.text_input(" Enter your question:")
 # === Generate SQL query from user question ===
 def generate_sql_from_question(question):
   selected_schema = ""
-
-    if table_choice == "Uploaded File" and uploaded_df is not None:
-        selected_schema = f"4. {temp_table_name}({', '.join(uploaded_df.columns)})"
-    else:
-        selected_schema = schema_description  # fallback to full schema
+  if table_choice == "Uploaded File" and uploaded_df is not None:
+    selected_schema = f"4. {temp_table_name}({', '.join(uploaded_df.columns)})"
+  else:
+    selected_schema = schema_description  # fallback to full schema
 
     prompt = f"""
 You are a helpful assistant that writes SQL queries for a SQLite database.
